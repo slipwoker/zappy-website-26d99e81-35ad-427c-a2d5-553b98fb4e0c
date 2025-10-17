@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="צרו קשר עם בתאל עיצובי בלונים - נשמח לשמוע על האירוע שלכם ולעזור לכם ליצור חוויה בלתי נשכחת.">
+    <meta name="keywords" content="צור קשר, פרטי התקשרות, הזמנת עיצוב בלונים, ייעוץ אירועים">
+    <title>צור קשר - בתאל עיצובי בלונים</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512x512.png">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <!-- Cookie Consent -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3/dist/cookieconsent.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3/dist/cookieconsent.umd.js"></script>
+    <!-- Mickidum Accessibility Toolbar -->
+    <script src="https://cdn.jsdelivr.net/gh/mickidum/acc_toolbar/acctoolbar/acctoolbar.min.js"></script>
+<!-- Zappy Analytics -->
+<script>
+(function() {
+  'use strict';
+  
+  // Configuration
+  var config = {
+    websiteId: '26d99e81-35ad-427c-a2d5-553b98fb4e0c',
+    apiUrl: 'https://api.zappy5.com/api/analytics/track',
+    sessionDuration: 30 * 60 * 1000, // 30 minutes
+    trackPageViews: true,
+    trackClicks: true,
+    trackFormSubmissions: true
+  };
+  
+  // Generate or retrieve session ID
+  function getSessionId() {
+    var sessionKey = 'zappy_session_' + config.websiteId;
+    var session = null;
+    
+    try {
+      session = sessionStorage.getItem(sessionKey);
+      if (session) {
+        var sessionData = JSON.parse(session);
+        var now = Date.now();
+        
+        // Check if session is still valid
+        if (now - sessionData.timestamp < config.sessionDuration) {
+          // Update timestamp
+          sessionData.timestamp = now;
+          sessionStorage.setItem(sessionKey, JSON.stringify(sessionData));
+          return sessionData.id;
+        }
+      }
+    } catch (e) {
+      console.warn('Zappy Analytics: SessionStorage not available');
+    }
+    
+    // Generate new session ID
+    var newSessionId = 'zs_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    try {
+      sessionStorage.setItem(sessionKey, JSON.stringify({
+        id: newSessionId,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      // Continue without session storage
+    }
+    
+    return newSessionId;
+  }
+  
+  var sessionId = getSessionId();
+  
+  // Track an event
+  function trackEvent(eventType, data) {
+    data = data || {};
+    
+    var eventData = {
+      website_id: config.websiteId,
+      event_type: eventType,
+      page_path: window.location.pathname,
+      referrer: document.referrer || 'direct',
+      session_id: sessionId,
+      metadata: data
+    };
+    
+    // Use sendBeacon if available (better for page unload events)
+    if (navigator.sendBeacon) {
+      var blob = new Blob([JSON.stringify(eventData)], { type: 'application/json' });
+      navigator.sendBeacon(config.apiUrl, blob);
+    } else {
+      // Fallback to fetch
+      fetch(config.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventData),
+        keepalive: true
+      }).catch(function(error) {
+        console.warn('Zappy Analytics: Failed to track event', error);
+      });
+    }
+  }
+  
+  // Track page view
+  if (config.trackPageViews) {
+    trackEvent('pageview', {
+      title: document.title,
+      url: window.location.href
+    });
+  }
+  
+  // Track clicks on important elements
+  if (config.trackClicks) {
+    document.addEventListener('click', function(e) {
+      var target = e.target;
+      
+      // Track button clicks
+      if (target.tagName === 'BUTTON' || target.closest('button')) {
+        var button = target.tagName === 'BUTTON' ? target : target.closest('button');
+        trackEvent('click', {
+          element: 'button',
+          text: button.textContent.trim().substring(0, 100),
+          id: button.id || null,
+          class: button.className || null
+        });
+      }
+      
+      // Track link clicks
+      else if (target.tagName === 'A' || target.closest('a')) {
+        var link = target.tagName === 'A' ? target : target.closest('a');
+        trackEvent('click', {
+          element: 'link',
+          text: link.textContent.trim().substring(0, 100),
+          href: link.href,
+          external: link.hostname !== window.location.hostname
+        });
+      }
+    }, true);
+  }
+  
+  // Track form submissions
+  if (config.trackFormSubmissions) {
+    document.addEventListener('submit', function(e) {
+      var form = e.target;
+      
+      trackEvent('form_submit', {
+        form_id: form.id || null,
+        form_name: form.name || null,
+        form_action: form.action || null,
+        form_method: form.method || 'GET'
+      });
+    }, true);
+  }
+  
+  // Track time on page (send on page unload)
+  var pageLoadTime = Date.now();
+  
+  window.addEventListener('beforeunload', function() {
+    var timeOnPage = Math.floor((Date.now() - pageLoadTime) / 1000); // in seconds
+    
+    trackEvent('page_unload', {
+      time_on_page: timeOnPage,
+      page_path: window.location.pathname
+    });
+  });
+  
+  // Expose tracking function globally for custom events
+  window.zappyAnalytics = {
+    track: trackEvent,
+    getSessionId: function() { return sessionId; }
+  };
+  
+})();
+</script>
+<!-- End Zappy Analytics -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <div class="nav-brand"><a href="/" class="logo-link" aria-label="Home" style="display: inline-block; text-decoration: none; line-height: 0; margin-right: 0; vertical-align: middle;"><img src="assets/logo.webp" alt="בתאל עיצובי בלונים" class="logo" style="max-height: 60px; height: auto; width: auto; max-width: 250px; object-fit: contain; background: transparent; image-rendering: crisp-edges;" /></a><span class="brand-title">בתאל עיצובי בלונים</span>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle" aria-label="תפריט">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/services">שירותים</a></li>
+                <li><a href="/gallery">גלריה</a></li>
+                <li><a href="/about">אודות</a></li>
+                <li><a href="/contact" class="active">צור קשר</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="page-hero">
+        <div class="container">
+            <h1>בואו ניצור קסם ביחד</h1>
+            <p>נשמח לשמוע על האירוע שלכם ולעזור לכם להפוך אותו למציאות מרהיבה</p>
+        </div>
+    </section>
+
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-wrapper">
+                <div class="contact-info">
+                    <h2>פרטי התקשרות</h2>
+                    <p>נשמח לענות על כל שאלה ולעזור לכם לתכנן את האירוע המושלם</p>
+                    
+                    <div class="contact-details">
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="contact-text">
+                                <h3>טלפון</h3>
+                                <a href="tel:[phone_number]">[phone_number]</a>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="contact-text">
+                                <h3>אימייל</h3>
+                                <a href="mailto:[email_address]">[email_address]</a>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div class="contact-text">
+                                <h3>וואטסאפ</h3>
+                                <a href="https://wa.me/[whatsapp_number]" target="_blank" rel="noopener noreferrer">שלחו הודעה</a>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="contact-text">
+                                <h3>כתובת</h3>
+                                <p>[business_address]</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="contact-text">
+                                <h3>שעות פעילות</h3>
+                                <p>ראשון - חמישי: 9:00 - 18:00</p>
+                                <p>שישי: 9:00 - 13:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-form-wrapper">
+                    <h2>שלחו לנו הודעה</h2>
+                    <p>מלאו את הפרטים ונחזור אליכם בהקדם</p>
+                    
+                    <form id="contactForm" class="contact-form">
+                        <div class="form-group">
+                            <label for="name">שם מלא *</label>
+                            <input type="text" id="name" name="name" required placeholder="השם המלא שלכם">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">אימייל *</label>
+                            <input type="email" id="email" name="email" required placeholder="כתובת האימייל שלכם">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">טלפון *</label>
+                            <input type="tel" id="phone" name="phone" required placeholder="מספר הטלפון שלכם">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="eventType">סוג האירוע</label>
+                            <select id="eventType" name="eventType">
+                                <option value="">בחרו סוג אירוע</option>
+                                <option value="birthday">יום הולדת</option>
+                                <option value="wedding">חתונה</option>
+                                <option value="barmitzvah">בר/בת מצווה</option>
+                                <option value="corporate">אירוע חברה</option>
+                                <option value="other">אחר</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="eventDate">תאריך האירוע</label>
+                            <input type="date" id="eventDate" name="eventDate">
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="message">פרטים נוספים</label>
+                            <textarea id="message" name="message" rows="5" placeholder="ספרו לנו על האירוע שלכם - החזון, הצבעים, מספר האורחים וכל פרט שחשוב לכם"></textarea>
+                        </div>
+                        
+                        <div class="form-group checkbox-group full-width">
+                            <input type="checkbox" id="terms" name="terms" required>
+                            <label for="terms">אני מסכים/ה לתנאי השימוש ולמדיניות הפרטיות</label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-large">שלחו הודעה</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="faq-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>שאלות נפוצות</h2>
+                <p>תשובות לשאלות שלקוחות שואלים לעתים קרובות</p>
+            </div>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> כמה זמן לפני האירוע צריך להזמין?</h3>
+                    <p>אנחנו ממליצים להזמין לפחות 2-3 שבועות מראש, אבל נשמח לעזור גם בהזמנות דחופות יותר בכפוף לזמינות.</p>
+                </div>
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> האם אתם מגיעים גם לאירועים מחוץ לאזור?</h3>
+                    <p>כן! אנחנו מגיעים לכל הארץ. עלויות נסיעה משתנות בהתאם למרחק.</p>
+                </div>
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> כמה זמן לוקח להתקין את העיצוב?</h3>
+                    <p>זמן ההתקנה משתנה בהתאם למורכבות העיצוב, בדרך כלל בין שעה לשלוש שעות.</p>
+                </div>
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> האם הבלונים מחזיקים לאורך כל האירוע?</h3>
+                    <p>כן! אנחנו משתמשים בבלונים באיכות גבוהה שמחזיקים מעולה לאורך כל האירוע ואפילו מעבר לכך.</p>
+                </div>
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> האם אפשר לראות דוגמאות לעיצובים?</h3>
+                    <p>בהחלט! בעמוד הגלריה שלנו תוכלו לראות מגוון רחב של עיצובים שיצרנו.</p>
+                </div>
+                <div class="faq-item">
+                    <h3><i class="fas fa-question-circle"></i> איך מחושב המחיר?</h3>
+                    <p>המחיר נקבע לפי סוג העיצוב, כמות הבלונים, מורכבות העבודה ומיקום האירוע. נשמח לתת לכם הצעת מחיר מפורטת.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- Legal Footer -->
+    <footer class="legal-footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-main">
+            <p>© 2025 בתאל עיצובי בלונים. כל הזכויות שמורות.</p>
+            <p class="zappy-attribution">נוצר באמצעות Zappy</p>
+          </div>
+          <div class="footer-social"><a href="[facebook_url]" target="_blank" rel="noopener noreferrer" aria-label="פייסבוק">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+<a href="[instagram_url]" target="_blank" rel="noopener noreferrer" aria-label="אינסטגרם">
+                    <i class="fab fa-instagram"></i>
+                </a>
+<a href="[whatsapp_url]" target="_blank" rel="noopener noreferrer" aria-label="וואטסאפ">
+                    <i class="fab fa-whatsapp"></i>
+                </a></div>
+          <div class="footer-legal">
+            <a href="privacy.html" target="_blank" rel="noopener" aria-label="מדיניות פרטיות">
+              מדיניות פרטיות
+            </a>
+            <span class="separator">|</span>
+            <a href="accessibility.html" target="_blank" rel="noopener" aria-label="נגישות">
+              נגישות
+            </a>
+            <span class="separator">|</span>
+            <a href="terms.html" target="_blank" rel="noopener" aria-label="תנאי שימוש">
+              תנאי שימוש
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <a href="tel:[phone_number]" class="phone-float" aria-label="התקשרו אלינו">
+        <i class="fas fa-phone"></i>
+    </a>
+    <a href="https://wa.me/[whatsapp_number]" target="_blank" class="whatsapp-float" aria-label="וואטסאפ" rel="noopener noreferrer">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+    <div data-integration="accessibility:toolbar"></div>
+    <script src="script.js"></script>
+</body>
+</html>
